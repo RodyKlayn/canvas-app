@@ -19,10 +19,13 @@ import {
   Compass,
   Box,
   LayoutGrid,
+  Plus,
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import { ProjectSidebar } from "../components/project-sidebar";
 import { InfiniteCanvas } from "../components/infinite-canvas";
+import { RichTextEditor } from "../components/rich-text-editor";
+import { DoubleDiamond } from "../components/double-diamond";
 import { useCanvasStore, createStickyNode } from "../store";
 import type { WorkspaceMode } from "../types";
 
@@ -33,8 +36,12 @@ export function HomeView() {
   const setMode = useCanvasStore((s) => s.setMode);
   const createProject = useCanvasStore((s) => s.createProject);
   const addNode = useCanvasStore((s) => s.addNode);
+  const createDocument = useCanvasStore((s) => s.createDocument);
 
   const activeProject = projects.find((p) => p.id === activeProjectId);
+  const activeDoc = activeProject?.documents.find(
+    (d) => d.id === activeProject.activeDocumentId,
+  );
 
   const handleAddSticky = useCallback(() => {
     if (!activeProjectId) return;
@@ -50,6 +57,12 @@ export function HomeView() {
       data: { kind: "link", url: "https://", title: "New link" },
     });
   }, [activeProjectId, addNode]);
+
+  const handleAddDocument = useCallback(() => {
+    if (!activeProjectId) return;
+    createDocument();
+    setMode("document");
+  }, [activeProjectId, createDocument, setMode]);
 
   return (
     <SplitView
@@ -133,24 +146,32 @@ export function HomeView() {
             />
           ) : mode === "canvas" ? (
             <InfiniteCanvas />
+          ) : mode === "document" ? (
+            activeDoc ? (
+              <RichTextEditor documentId={activeDoc.id} />
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center gap-4">
+                <EmptyState
+                  placement="center"
+                  title="No document selected"
+                  description="Create a new document to start writing reports or documentation."
+                  actions={
+                    <Button variant="accent" onClick={handleAddDocument}>
+                      <Plus className="size-4" />
+                      New Document
+                    </Button>
+                  }
+                />
+              </div>
+            )
+          ) : mode === "methodology" ? (
+            <DoubleDiamond />
           ) : (
             <div className="h-full flex items-center justify-center">
               <EmptyState
                 placement="center"
-                title={
-                  mode === "document"
-                    ? "Document editor"
-                    : mode === "methodology"
-                      ? "Research methodologies"
-                      : "3D prototype viewer"
-                }
-                description={
-                  mode === "document"
-                    ? "Rich text editor with tables and formatting — coming in the next phase."
-                    : mode === "methodology"
-                      ? "Interactive Double Diamond workflow templates — coming in the next phase."
-                      : "3D model viewer for .OBJ and .GLTF files — coming in the next phase."
-                }
+                title="3D prototype viewer"
+                description="3D model viewer for .OBJ and .GLTF files — coming in the next phase."
               />
             </div>
           )}
