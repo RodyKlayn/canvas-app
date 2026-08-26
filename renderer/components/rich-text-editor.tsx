@@ -78,7 +78,7 @@ export function RichTextEditor({ documentId }: RichTextEditorProps) {
     if (editor && doc) {
       editor.commands.setContent(doc.content ?? "");
     }
-  }, [documentId]); // eslint-disable-line
+  }, [documentId]);
 
   const handleTitleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {

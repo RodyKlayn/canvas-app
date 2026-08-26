@@ -74,4 +74,20 @@ export interface Project {
   methodology: DoubleDiamondState;
 }
 
+// ── Global Sticky Notes (floating over all tabs) ──────────────────────
+
+export interface GlobalSticky {
+  id: string;
+  text: string;
+  color: StickyColor;
+  /** position relative to the window content area (px) */
+  x: number;
+  y: number;
+  /** size in px */
+  width: number;
+  height: number;
+  zIndex: number;
+  createdAt: number;
+}
+
 export type WorkspaceMode = "canvas" | "document" | "methodology" | "viewer";

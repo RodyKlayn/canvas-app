@@ -175,3 +175,24 @@
   pointer-events: none;
   height: 0;
 }
+
+/* ── Global floating sticky notes ────────────────────────────────────── */
+
+.global-sticky-layer {
+  /* pointer-events-none on the layer; each sticky re-enables them */
+}
+
+.global-sticky {
+  transition: box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.global-sticky:hover {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.global-sticky textarea {
+  font-family: inherit;
+}

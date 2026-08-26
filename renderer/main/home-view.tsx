@@ -20,12 +20,14 @@ import {
   Box,
   LayoutGrid,
   Plus,
+  Pin,
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import { ProjectSidebar } from "../components/project-sidebar";
 import { InfiniteCanvas } from "../components/infinite-canvas";
 import { RichTextEditor } from "../components/rich-text-editor";
 import { DoubleDiamond } from "../components/double-diamond";
+import { GlobalStickyLayer } from "../components/global-sticky-layer";
 import { useCanvasStore, createStickyNode } from "../store";
 import type { WorkspaceMode } from "../types";
 
@@ -37,6 +39,7 @@ export function HomeView() {
   const createProject = useCanvasStore((s) => s.createProject);
   const addNode = useCanvasStore((s) => s.addNode);
   const createDocument = useCanvasStore((s) => s.createDocument);
+  const addGlobalSticky = useCanvasStore((s) => s.addGlobalSticky);
 
   const activeProject = projects.find((p) => p.id === activeProjectId);
   const activeDoc = activeProject?.documents.find(
@@ -63,6 +66,12 @@ export function HomeView() {
     createDocument();
     setMode("document");
   }, [activeProjectId, createDocument, setMode]);
+
+  const handleAddGlobalSticky = useCallback(() => {
+    // Place near top-left with a slight cascade offset
+    const count = useCanvasStore.getState().globalStickies.length;
+    addGlobalSticky({ x: 60 + (count % 5) * 24, y: 60 + (count % 5) * 24 });
+  }, [addGlobalSticky]);
 
   return (
     <SplitView
@@ -128,6 +137,14 @@ export function HomeView() {
               >
                 <Link2 className="size-4" />
               </Button>
+              <Button
+                iconOnly
+                variant="glass"
+                onClick={handleAddGlobalSticky}
+                aria-label="Pin sticky note to window"
+              >
+                <Pin className="size-4" />
+              </Button>
             </ToolbarActions>
           ) : null}
         </Toolbar>
@@ -175,6 +192,9 @@ export function HomeView() {
               />
             </div>
           )}
+
+          {/* Global floating sticky notes — visible over all tabs */}
+          <GlobalStickyLayer />
         </div>
       </div>
     </SplitView>

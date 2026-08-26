@@ -7,6 +7,7 @@ import type {
   DiamondPhase,
   Document,
   DoubleDiamondState,
+  GlobalSticky,
   MethodologyTask,
   Project,
   StickyColor,
@@ -17,6 +18,7 @@ interface CanvasStore {
   projects: Project[];
   activeProjectId: string | null;
   mode: WorkspaceMode;
+  globalStickies: GlobalSticky[];
 
   createProject: (name?: string) => string;
   deleteProject: (id: string) => void;
@@ -45,6 +47,12 @@ interface CanvasStore {
   toggleMethodologyTask: (phase: DiamondPhase, taskId: string) => void;
   removeMethodologyTask: (phase: DiamondPhase, taskId: string) => void;
   setMethodologyNotes: (phase: DiamondPhase, notes: string) => void;
+
+  // Global sticky actions
+  addGlobalSticky: (sticky?: Partial<Omit<GlobalSticky, "id" | "createdAt">>) => string;
+  updateGlobalSticky: (id: string, patch: Partial<Omit<GlobalSticky, "id" | "createdAt">>) => void;
+  removeGlobalSticky: (id: string) => void;
+  bringGlobalStickyToFront: (id: string) => void;
 }
 
 const defaultProjectName = (count: number) => `Untitled Project ${count}`;
@@ -96,6 +104,7 @@ export const useCanvasStore = create<CanvasStore>()(
       projects: [],
       activeProjectId: null,
       mode: "canvas",
+      globalStickies: [],
 
       createProject: (name) => {
         const id = nanoid();
@@ -383,6 +392,54 @@ export const useCanvasStore = create<CanvasStore>()(
             };
           }),
         })),
+
+      // ── Global sticky actions ────────────────────────────────────────
+
+      addGlobalSticky: (overrides) => {
+        const id = nanoid();
+        const maxZ = get().globalStickies.reduce(
+          (max, s) => Math.max(max, s.zIndex),
+          0,
+        );
+        const sticky: GlobalSticky = {
+          id,
+          text: "",
+          color: overrides?.color ?? "yellow",
+          x: overrides?.x ?? 80,
+          y: overrides?.y ?? 80,
+          width: overrides?.width ?? 180,
+          height: overrides?.height ?? 180,
+          zIndex: maxZ + 1,
+          createdAt: Date.now(),
+        };
+        set((state) => ({ globalStickies: [...state.globalStickies, sticky] }));
+        return id;
+      },
+
+      updateGlobalSticky: (id, patch) =>
+        set((state) => ({
+          globalStickies: state.globalStickies.map((s) =>
+            s.id === id ? { ...s, ...patch } : s,
+          ),
+        })),
+
+      removeGlobalSticky: (id) =>
+        set((state) => ({
+          globalStickies: state.globalStickies.filter((s) => s.id !== id),
+        })),
+
+      bringGlobalStickyToFront: (id) =>
+        set((state) => {
+          const maxZ = state.globalStickies.reduce(
+            (max, s) => Math.max(max, s.zIndex),
+            0,
+          );
+          return {
+            globalStickies: state.globalStickies.map((s) =>
+              s.id === id ? { ...s, zIndex: maxZ + 1 } : s,
+            ),
+          };
+        }),
     }),
     {
       name: "canvas-workspace",
