@@ -1,67 +1,161 @@
-// EXAMPLE VIEW - Replace this entire component
-//
-// This template uses IPC APIs with a secure preload pattern.
-//
-// === SECURITY MODEL ===
-// - Renderer code should NOT import ipcRenderer directly
-// - Use contextBridge in a preload script to expose specific APIs
-// - Channel names follow channel naming convention: "module:method" (e.g., "dialog:showOpenDialog")
-//
-// === PRELOAD SCRIPT (preload.ts) ===
-// ```
-// import { ipcRenderer, contextBridge } from '@glaze/core/preload';
-//
-// contextBridge.exposeInMainWorld('myAppAPI', {
-//   getInfo: () => ipcRenderer.invoke('app:getInfo'),
-//   saveFile: (name: string, data: string) => ipcRenderer.invoke('file:save', { name, data }),
-//   showOpenDialog: (options: any) => ipcRenderer.invoke('dialog:showOpenDialog', options),
-// });
-// ```
-//
-// === RENDERER CODE (your components) ===
-// ```
-// // Only use the exposed API - no direct ipcRenderer access
-// const info = await window.myAppAPI.getInfo();
-// await window.myAppAPI.saveFile('test.txt', 'hello');
-// const result = await window.myAppAPI.showOpenDialog({ properties: ['openFile'] });
-// ```
-//
-// === BACKEND HANDLERS (main/handlers/index.ts) ===
-// ```
-// import { ipcMain, dialog } from '@glaze/core/backend';
-//
-// // Custom handler
-// ipcMain.handle('app:getInfo', async () => {
-//   return { name: 'My App', version: '1.0.0' };
-// });
-//
-// // Built-in modules work directly through the Glaze APIs
-// // The native API handlers are already registered for:
-// //   dialog:showOpenDialog, dialog:showSaveDialog, dialog:showMessageBox
-// //   shell:openPath, shell:openExternal, shell:trashItem, shell:beep
-// //   screen:getPrimaryDisplay, screen:getAllDisplays, etc.
-// //   clipboard:readText, clipboard:writeText
-// //   nativeTheme:getInfo, nativeTheme:setThemeSource
-// //   Menu:setApplicationMenu, Menu:popup
-// ```
-
-import { Toolbar, ToolbarContent, ToolbarTitle } from "@glaze/core/components";
-
-declare const __APP_DISPLAY_NAME__: string | undefined;
+import { useCallback } from "react";
+import {
+  SplitView,
+  Toolbar,
+  ToolbarContent,
+  ToolbarTitle,
+  ToolbarActions,
+  SegmentedControl,
+  SegmentedControlItem,
+  Button,
+  EmptyState,
+  Separator,
+  Text,
+} from "@glaze/core/components";
+import {
+  StickyNote,
+  Link2,
+  FileText,
+  Compass,
+  Box,
+  LayoutGrid,
+} from "lucide-react";
+import { nanoid } from "nanoid";
+import { ProjectSidebar } from "../components/project-sidebar";
+import { InfiniteCanvas } from "../components/infinite-canvas";
+import { useCanvasStore, createStickyNode } from "../store";
+import type { WorkspaceMode } from "../types";
 
 export function HomeView() {
+  const projects = useCanvasStore((s) => s.projects);
+  const activeProjectId = useCanvasStore((s) => s.activeProjectId);
+  const mode = useCanvasStore((s) => s.mode);
+  const setMode = useCanvasStore((s) => s.setMode);
+  const createProject = useCanvasStore((s) => s.createProject);
+  const addNode = useCanvasStore((s) => s.addNode);
+
+  const activeProject = projects.find((p) => p.id === activeProjectId);
+
+  const handleAddSticky = useCallback(() => {
+    if (!activeProjectId) return;
+    addNode(createStickyNode({ x: 250, y: 200 }, "yellow"));
+  }, [activeProjectId, addNode]);
+
+  const handleAddLink = useCallback(() => {
+    if (!activeProjectId) return;
+    addNode({
+      id: nanoid(),
+      type: "link",
+      position: { x: 250, y: 200 },
+      data: { kind: "link", url: "https://", title: "New link" },
+    });
+  }, [activeProjectId, addNode]);
+
   return (
-    <div className="h-full flex flex-col">
-      <Toolbar>
-        <ToolbarContent>
-          <ToolbarTitle>{/* Page title */}</ToolbarTitle>
-        </ToolbarContent>
-      </Toolbar>
-      <div className="h-full flex flex-col gap-2 w-full text-center absolute inset-0 justify-center items-center">
-        <h1 className="text-heading1 font-normal shimmer-text">
-          {__APP_DISPLAY_NAME__ || "Glaze App"}
-        </h1>
+    <SplitView
+      sidebar={<ProjectSidebar sidebarActions={<SplitView.SidebarToggle />} />}
+      storageKey="canvas-workspace-shell"
+    >
+      <div className="h-full flex flex-col">
+        <Toolbar>
+          <ToolbarContent>
+            <ToolbarTitle>
+              {activeProject ? activeProject.name : "Canvas"}
+            </ToolbarTitle>
+            {activeProject ? (
+              <Text variant="small" color="tertiary" className="ml-2">
+                {activeProject.nodes.length}{" "}
+                {activeProject.nodes.length === 1 ? "item" : "items"}
+              </Text>
+            ) : null}
+          </ToolbarContent>
+          {activeProject ? (
+            <ToolbarActions>
+              <SegmentedControl
+                value={mode}
+                onValueChange={(v) => setMode(v as WorkspaceMode)}
+                size="small"
+                aria-label="Workspace mode"
+              >
+                <SegmentedControlItem value="canvas" iconOnly aria-label="Canvas">
+                  <LayoutGrid className="size-3.5" />
+                </SegmentedControlItem>
+                <SegmentedControlItem
+                  value="document"
+                  iconOnly
+                  aria-label="Document"
+                >
+                  <FileText className="size-3.5" />
+                </SegmentedControlItem>
+                <SegmentedControlItem
+                  value="methodology"
+                  iconOnly
+                  aria-label="Methodology"
+                >
+                  <Compass className="size-3.5" />
+                </SegmentedControlItem>
+                <SegmentedControlItem value="viewer" iconOnly aria-label="3D Viewer">
+                  <Box className="size-3.5" />
+                </SegmentedControlItem>
+              </SegmentedControl>
+              <Separator orientation="vertical" />
+              <Button
+                iconOnly
+                variant="glass"
+                onClick={handleAddSticky}
+                aria-label="Add sticky note"
+              >
+                <StickyNote className="size-4" />
+              </Button>
+              <Button
+                iconOnly
+                variant="glass"
+                onClick={handleAddLink}
+                aria-label="Add link"
+              >
+                <Link2 className="size-4" />
+              </Button>
+            </ToolbarActions>
+          ) : null}
+        </Toolbar>
+
+        <div className="flex-1 relative">
+          {!activeProject ? (
+            <EmptyState
+              placement="center"
+              title="No project selected"
+              description="Select a project from the sidebar or create a new one to start building your moodboard."
+              actions={
+                <Button variant="accent" onClick={() => createProject()}>
+                  Create Project
+                </Button>
+              }
+            />
+          ) : mode === "canvas" ? (
+            <InfiniteCanvas />
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <EmptyState
+                placement="center"
+                title={
+                  mode === "document"
+                    ? "Document editor"
+                    : mode === "methodology"
+                      ? "Research methodologies"
+                      : "3D prototype viewer"
+                }
+                description={
+                  mode === "document"
+                    ? "Rich text editor with tables and formatting — coming in the next phase."
+                    : mode === "methodology"
+                      ? "Interactive Double Diamond workflow templates — coming in the next phase."
+                      : "3D model viewer for .OBJ and .GLTF files — coming in the next phase."
+                }
+              />
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </SplitView>
   );
 }
