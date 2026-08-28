@@ -13,6 +13,7 @@ import { app, BrowserWindow, Menu, logger, initDevToolsButtonState } from "@glaz
 import { registerHandlers } from "./handlers/index.js";
 import { getPreloadPath, getWindowUrl } from "./windows/window-paths.js";
 import { openSettingsWindow } from "./windows/settings-window.js";
+import { syncService } from "./services/sync-service.js";
 
 // Get directory paths
 const __filename = fileURLToPath(import.meta.url);
@@ -199,6 +200,9 @@ app.on("activate", (hasVisibleWindows) => {
 
 app.on("before-quit", () => {
   logger.info("main", "App before-quit, cleaning up...");
+  syncService.stopServer().catch((err) => {
+    logger.error("main", "Failed to stop web server", err);
+  });
 });
 
 // ── App ready ─────────────────────────────────────────────────────────
@@ -218,6 +222,14 @@ app.whenReady().then(async () => {
   await appAiDevHarness?.runAppAiAutotest();
 
   await setupApplicationMenu();
+
+  // Start the local web server for browser access
+  try {
+    await syncService.startServer();
+    logger.info("main", `Web client running at http://localhost:${syncService.getServerPort()}`);
+  } catch (err) {
+    logger.error("main", "Failed to start web server", err);
+  }
 
   createMainWindow()
     .then(() => {

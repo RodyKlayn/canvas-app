@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 
 import { appHandlers } from "./app.js";
 import { getSettingsWindow, openSettingsWindow } from "../windows/settings-window.js";
+import { registerSyncHandlers } from "./sync-handlers.js";
 
 import { ipcMain, logger } from "@glaze/core/backend";
 
@@ -39,6 +40,9 @@ export function registerHandlers(): void {
   });
 
   logger.info("handlers", "✓ IPC handlers registered");
+
+  // Register sync handlers (auto-save + web server)
+  registerSyncHandlers();
 
   // TODO: Add more handlers here using ipcMain.handle()
   // Example:

@@ -39,7 +39,7 @@ export function RichTextEditor({ documentId }: RichTextEditorProps) {
   const project = useCanvasStore((s) =>
     s.projects.find((p) => p.id === s.activeProjectId),
   );
-  const doc = project?.documents.find((d) => d.id === documentId);
+  const doc = project?.documents?.find((d) => d.id === documentId);
   const updateContent = useCanvasStore((s) => s.updateDocumentContent);
   const renameDoc = useCanvasStore((s) => s.renameDocument);
 
@@ -283,6 +283,7 @@ function ToolbarButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
+      title={ariaLabel}
       className={`p-1.5 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
         active
           ? "bg-accent text-white"

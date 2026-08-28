@@ -18,6 +18,7 @@ import {
 } from "@xyflow/react";
 import { nanoid } from "nanoid";
 import { nodeTypes } from "./canvas-nodes";
+import { CanvasSnapshots } from "./canvas-snapshots";
 import { useCanvasStore } from "../store";
 import type { CanvasEdge, CanvasNode, StickyColor } from "../types";
 
@@ -147,35 +148,38 @@ function CanvasInner() {
   }, []);
 
   return (
-    <div
-      ref={reactFlowWrapper}
-      className="w-full h-full"
-      onDrop={onDrop}
-      onDragOver={onDragOver}
-    >
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        fitView
-        fitViewOptions={{ padding: 0.3 }}
-        proOptions={{ hideAttribution: true }}
-        className="bg-transparent"
+    <div className="w-full h-full flex">
+      <CanvasSnapshots />
+      <div
+        ref={reactFlowWrapper}
+        className="flex-1 h-full"
+        onDrop={onDrop}
+        onDragOver={onDragOver}
       >
-        <Background gap={20} size={1} />
-        <Controls
-          className="!bg-popover !border !border-separator !rounded-lg !shadow-sm"
-          showInteractive={false}
-        />
-        <MiniMap
-          className="!bg-popover !border !border-separator !rounded-lg !shadow-sm"
-          nodeColor="#007aff"
-          maskColor="rgb(0 0 0 / 0.05)"
-        />
-      </ReactFlow>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          fitView
+          fitViewOptions={{ padding: 0.3 }}
+          proOptions={{ hideAttribution: true }}
+          className="bg-transparent"
+        >
+          <Background gap={20} size={1} />
+          <Controls
+            className="!bg-popover !border !border-separator !rounded-lg !shadow-sm"
+            showInteractive={false}
+          />
+          <MiniMap
+            className="!bg-popover !border !border-separator !rounded-lg !shadow-sm"
+            nodeColor="#007aff"
+            maskColor="rgb(0 0 0 / 0.05)"
+          />
+        </ReactFlow>
+      </div>
     </div>
   );
 }
