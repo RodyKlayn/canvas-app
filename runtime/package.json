@@ -1,0 +1,20 @@
+{
+  "id": "m0ata8bs",
+  "name": "canvas",
+  "productName": "Canvas",
+  "version": "1.0.0",
+  "description": "Design research and creative",
+  "type": "module",
+  "glaze": {
+    "appId": "canvas-local-m0ata8bs",
+    "variant": "local",
+    "capabilities": {},
+    "sdkVersion": "0.14.0.0",
+    "createdAt": "2026-08-26T19:33:13.950Z",
+    "lastMigration": "sdk-projection-paths",
+    "host": {
+      "minVersion": "0.14.0.0"
+    },
+    "updatedAt": 1787774113936
+  }
+}
